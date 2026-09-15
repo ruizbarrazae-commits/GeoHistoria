@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GeoHistoria — Sandbox Geopolítico</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1016;color:#e9eef5;font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden}
+#app{display:grid;grid-template-columns:290px 1fr 330px;height:100vh}
+.panel{background:#111821;border-right:1px solid #26313d;padding:18px;overflow:auto}.right{border-right:0;border-left:1px solid #26313d}
+h1{font-size:22px;margin:0 0 4px}.sub{color:#8f9baa;font-size:12px;margin-bottom:18px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#8f9baa;margin:20px 0 10px}
+label{display:block;font-size:12px;color:#aeb8c4;margin:10px 0 5px}input,select,button,textarea{width:100%;border:1px solid #303c49;background:#0d141c;color:#eef3f8;border-radius:7px;padding:9px}
+button{cursor:pointer;background:#182331;font-weight:600}button:hover{background:#223246}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#0d141c;border:1px solid #26313d;border-radius:8px;padding:9px;margin:7px 0}.stat b{float:right}.bar{height:5px;background:#26313d;border-radius:9px;margin-top:7px;overflow:hidden}.bar i{display:block;height:100%;background:#67a6ff}
+#map{height:100%;background:#091019;position:relative}
+#advisor{position:absolute;z-index:1000;right:350px;bottom:18px;width:330px;background:rgba(17,24,33,.97);border:1px solid #344252;border-radius:10px;box-shadow:0 8px 30px #0008;padding:12px;display:none}
+#advisor h3,#contact h3{margin:0 0 8px;font-size:14px}.chat{height:150px;overflow:auto;background:#0b121a;border:1px solid #293542;border-radius:7px;padding:8px;font-size:12px}.msg{margin:5px 0}.ai{color:#9ec7ff}.me{color:#9ee0ad}
+#meeting{position:absolute;z-index:2000;inset:0;background:#101820;display:none;background-size:cover;background-position:center;align-items:center;justify-content:center}
+.meeting-card{background:rgba(8,12,17,.88);border:1px solid #596879;border-radius:12px;padding:28px;width:min(760px,90%);text-align:center;box-shadow:0 20px 70px #000b}.meeting-card h2{color:#fff;font-size:26px;margin:0 0 8px}.meeting-card p{color:#c4ced8}.leader-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.leader{background:#18232e;border-radius:9px;padding:18px}.leader .avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(145deg,#68798b,#1d2934);margin:auto auto 8px}.leaflet-container{background:#091019}.country{transition:.1s}
+#top{position:absolute;z-index:999;left:310px;top:14px;background:rgba(17,24,33,.95);border:1px solid #303c49;border-radius:9px;padding:10px 14px;display:flex;gap:18px;align-items:center;box-shadow:0 5px 20px #0006}
+#date{font-weight:700}.pill{font-size:12px;color:#9eabb9}.selected{font-weight:700}
+#eventLog{font-size:12px;line-height:1.5;color:#b9c3cf}.event{padding:8px 0;border-bottom:1px solid #26313d}
+.small{font-size:11px;color:#7f8b99}.danger{color:#ff8e8e}.good{color:#8ed7a4}
+
+#worldNews{position:absolute;z-index:1000;left:18px;bottom:18px;width:360px;max-height:260px;background:rgba(255,255,255,.84);backdrop-filter:blur(7px);color:#16202a;border:1px solid rgba(255,255,255,.75);border-radius:12px;box-shadow:0 10px 35px #0005;overflow:hidden}.newsHead{padding:10px 13px;font-weight:800;border-bottom:1px solid #ccd3d9;display:flex;justify-content:space-between}.newsList{max-height:215px;overflow:auto}.newsItem{padding:9px 13px;border-bottom:1px solid #d9dee3}.newsItem:last-child{border-bottom:0}.newsTag{font-size:10px;text-transform:uppercase;font-weight:800;color:#657585}.newsItem b{display:block;font-size:12px;margin:2px 0}.newsItem span{font-size:11px;color:#4d5a66}.regionBox{background:#0d141c;border:1px solid #26313d;border-radius:8px;padding:9px;margin-top:8px}.construction{position:fixed;inset:0;background:#0009;z-index:3200;display:none;align-items:center;justify-content:center}.constructionBox{width:min(650px,92vw);background:#111821;border:1px solid #43515f;border-radius:14px;padding:22px;box-shadow:0 20px 70px #0009}.site{height:190px;border-radius:10px;background:linear-gradient(#b9c7d1 0 42%,#69766f 42%);position:relative;overflow:hidden;margin:15px 0;border:1px solid #56636e}.ground{position:absolute;bottom:0;left:0;right:0;height:58%;background:repeating-linear-gradient(160deg,#766a57 0 8px,#85775f 8px 16px)}.building{position:absolute;bottom:22px;left:42%;width:110px;height:105px;background:#c8d0d5;border:2px solid #6f7b84;transform-origin:bottom;animation:buildUp 3s ease forwards;box-shadow:0 4px 0 #59646b}.crane{position:absolute;left:18%;bottom:28px;width:5px;height:140px;background:#424b53}.crane:after{content:'';position:absolute;left:0;top:0;width:190px;height:5px;background:#424b53}.barBuild{height:8px;background:#293540;border-radius:8px;overflow:hidden}.barBuild i{display:block;height:100%;width:0;background:#72b6ff;animation:progress 3s linear forwards}@keyframes buildUp{from{height:0;opacity:.3}to{height:105px;opacity:1}}@keyframes progress{to{width:100%}}
+
+.warHud{position:absolute;z-index:1100;right:18px;top:18px;width:290px;background:rgba(12,16,22,.88);backdrop-filter:blur(6px);border:1px solid #6a3a3a;border-radius:10px;padding:10px;box-shadow:0 8px 28px #0008;display:none}.warHud b{color:#ffb0a8}.warRow{display:flex;justify-content:space-between;font-size:11px;color:#c8d0d9;margin:4px 0}.unitMarker{background:transparent;border:0}.unit{font-size:23px;filter:drop-shadow(0 2px 2px #000);animation:unitPulse 1.2s ease-in-out infinite}.jet{font-size:24px;animation:jetFly 2.4s linear infinite}.tank{font-size:24px;animation:tankMove 1.8s ease-in-out infinite}.missile{font-size:22px;animation:missileFlash .55s ease-in-out infinite}.explosion{font-size:25px;animation:boom .7s ease-out infinite}.warLabel{background:#151b22dd;color:#fff;border:1px solid #8b4c4c;border-radius:8px;padding:4px 7px;font-size:10px;font-weight:800;white-space:nowrap}.warPulse{width:22px;height:22px;border:2px solid #ff6d5e;border-radius:50%;animation:pulseWar 1s infinite;box-shadow:0 0 18px #ff4d4d}.missileLine{stroke:#ff735f;stroke-width:2;stroke-dasharray:6 7;animation:dash 0.5s linear infinite;opacity:.85}@keyframes unitPulse{50%{transform:scale(1.08)}}@keyframes jetFly{0%{transform:translateX(-8px) rotate(-8deg)}50%{transform:translateX(8px) rotate(-2deg)}100%{transform:translateX(-8px) rotate(-8deg)}}@keyframes tankMove{50%{transform:translateX(5px)}}@keyframes missileFlash{50%{transform:scale(1.2)}}@keyframes boom{0%{transform:scale(.7);opacity:.4}70%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:.7}}@keyframes pulseWar{50%{transform:scale(1.6);opacity:.3}}@keyframes dash{to{stroke-dashoffset:-13px}}
+
+#startScreen{position:fixed;inset:0;z-index:5000;background:radial-gradient(circle at 50% 35%,#24384b 0,#0a1017 55%,#05080c 100%);display:flex;align-items:center;justify-content:center;padding:24px}#startCard{width:min(680px,94vw);padding:42px;border:1px solid #46576a;border-radius:18px;background:rgba(10,16,23,.88);box-shadow:0 30px 100px #000c;text-align:center}.logo{font-size:46px;font-weight:900;letter-spacing:2px;margin-bottom:5px}.tagline{color:#aebbc8;margin-bottom:28px}.startGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.startGrid button{padding:14px;font-size:14px}.version{margin-top:22px;font-size:11px;color:#6f7d8b}.saveBadge{margin-top:10px;font-size:11px;color:#8ed7a4}.dangerBtn{border-color:#75444a!important;background:#27171a!important}.toast{position:fixed;z-index:6000;right:20px;bottom:20px;background:#17232f;color:#eef3f8;border:1px solid #425466;border-radius:9px;padding:10px 14px;box-shadow:0 10px 35px #0008;display:none;font-size:12px}
+</style>
+</head>
+<body>
+<div id="startScreen"><div id="startCard"><div class="logo">GEOHISTORIA</div><div class="tagline">Una historia alternativa del mundo · Sandbox geopolítico</div><div class="startGrid"><button onclick="newGame()">🌎 Nueva partida</button><button onclick="continueGame()">▶ Continuar partida</button><button onclick="saveGame()">💾 Guardar partida</button><button onclick="exportGame()">⬇️ Exportar partida</button><button onclick="importGame()">⬆️ Importar partida</button><button class="dangerBtn" onclick="resetGame()">♻️ Reiniciar datos</button></div><div id="saveBadge" class="saveBadge"></div><div class="version">GeoHistoria V0.5 · preparada para GitHub Pages</div></div></div><div id="toast" class="toast"></div>
+
+<div id="top"><span id="date">1 de enero de 2026</span><span class="pill">Modo Sandbox</span><span class="pill">Sin créditos</span><button style="width:auto" onclick="nextMonth()">▶ Avanzar 1 mes</button><button style="width:auto" onclick="saveGame()">💾</button></div>
+<div id="advisor"><h3>🧠 Asesor IA del Presidente</h3><div id="advisorChat" class="chat"><div class="msg ai"><b>Asesor:</b> Presidente, puedo analizar economía, diplomacia, defensa y popularidad. ¿Qué decisión desea evaluar?</div></div><div style="display:flex;gap:6px;margin-top:7px"><input id="advisorInput" placeholder="Escriba su consulta..." onkeydown="if(event.key==='Enter')askAdvisor()"><button style="width:auto" onclick="askAdvisor()">Enviar</button></div></div>
+<div id="meeting"><div class="meeting-card"><h2>Reunión diplomática</h2><p id="meetingText">El Presidente ha sido convocado a una reunión.</p><div class="leader-grid"><div class="leader"><div class="avatar"></div><b>Presidente</b><div class="small">Tu gobierno</div></div><div class="leader"><div class="avatar"></div><b id="otherLeader">Líder extranjero</b><div class="small">Delegación visitante</div></div><div class="leader"><div class="avatar"></div><b>Asesor</b><div class="small">Consejo estratégico</div></div></div><button onclick="closeMeeting()">Entrar a la negociación</button></div></div><div id="app">
+<aside class="panel">
+<h1>GeoHistoria</h1><div class="sub">Prototipo geopolítico sandbox</div>
+<h2>País controlado</h2>
+<select id="countrySelect" onchange="selectCountry(this.value)"></select>
+<div id="countryInfo"></div><div class="regionBox"><label>Región / estado / provincia</label><select id="regionSelect"></select><button style="margin-top:7px" onclick="openConstruction()">🏗️ Construir infraestructura</button></div>
+<h2>Acciones</h2>
+<button onclick="addEvent('Se aprobó una reforma económica nacional.')">Aprobar reforma económica</button>
+<button onclick="addEvent('Se anunció un aumento del presupuesto de defensa.')">Aumentar defensa</button>
+<button onclick="addEvent('Se firmó un tratado comercial.')">Firmar tratado comercial</button><button onclick="declareWar()" style="border-color:#6d3a3a;background:#241719">⚔️ Declarar guerra</button><button onclick="toggleAdvisor()">🧠 Asesor IA presidencial</button><button onclick="openContact()">📞 Comunicaciones diplomáticas</button>
+<h2>Gabinete y ministros</h2>
+<div id="ministerContacts"></div>
+<button onclick="openNewspaper()">📰 Abrir periódico nacional</button>
+<button onclick="publishLaw()">📜 Publicar ley/comunicado</button>
+<h2>Presidente</h2>
+<label>Nombre</label><input id="leaderName" value="Alejandro">
+<label>Apellido</label><input id="leaderLast" value="Fuentes">
+<div class="row"><div><label>Edad</label><input id="leaderAge" type="number" value="47"></div><div><label>Partido</label><input id="party" value="Partido Nacional"></div></div>
+<label>Ideología</label><input id="ideology" value="Personalizada">
+<button style="margin-top:10px" onclick="saveLeader()">Guardar presidente</button>
+</aside>
+
+<main id="map"><div id="warHud" class="warHud"><div><b>⚠️ CONFLICTO ARMADO</b></div><div id="warName" style="font-size:12px;margin:4px 0 7px;color:#fff"></div><div class="warRow"><span>Estado</span><b>ACTIVO</b></div><div class="warRow"><span>Zona</span><span id="warZone">—</span></div><div class="warRow"><span>Unidades</span><span id="warUnits">—</span></div></div><div id="worldNews"><div class="newsHead"><span>🌐 Noticias del mundo</span><span class="small">EN VIVO</span></div><div id="newsList" class="newsList"></div></div></main>
+
+<aside class="panel right">
+<h2>Estado nacional</h2>
+<div id="stats"></div>
+<h2>Registro</h2>
+<div id="eventLog"><div class="event">Partida iniciada. Selecciona un país en el mapa.</div></div>
+<h2>Próximas versiones</h2>
+<div class="small">• Fronteras editables<br>• Elecciones y partidos<br>• Ejército y guerras<br>• Economía avanzada<br>• IA de países<br>• Regiones y ciudades<br>• Eventos históricos/procedurales</div>
+</aside>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function toggleAdvisor(){const a=document.getElementById('advisor');a.style.display=a.style.display==='block'?'none':'block'}
+function askAdvisor(){const i=document.getElementById('advisorInput'),q=i.value.trim();if(!q)return;const c=countries[current];let answer=`Analizando ${current}: popularidad ${c.approval}/100, economía ${c.eco}/100, defensa ${c.army}/100 y diplomacia ${c.diplomacy}/100. Recomiendo priorizar decisiones que no deterioren la popularidad mientras fortalecen la economía.`;if(/guerra|militar|defensa/i.test(q))answer=`Consejo militar: ${c.army}/100. Una escalada puede mejorar la presión diplomática, pero aumentará el costo fiscal y el riesgo internacional.`;if(/econom|dinero|impuesto|pib/i.test(q))answer=`Consejo económico: ${c.eco}/100. Conviene equilibrar crecimiento, gasto público y estabilidad antes de asumir nuevos compromisos.`;if(/diplom|alianza|tratado/i.test(q))answer=`Consejo diplomático: ${c.diplomacy}/100. Una negociación o alianza puede mejorar tu posición sin consumir recursos militares.`;const box=document.getElementById('advisorChat');box.innerHTML+=`<div class="msg me"><b>Presidente:</b> ${q}</div><div class="msg ai"><b>Asesor:</b> ${answer}</div>`;box.scrollTop=box.scrollHeight;i.value=''}
+function openContact(){const names=Object.keys(countries).filter(n=>n!==current);const target=names[Math.floor(Math.random()*names.length)];document.getElementById('otherLeader').textContent='Presidente de '+target;document.getElementById('meetingText').textContent=`Ha llegado una solicitud de reunión diplomática desde ${target}.`;document.getElementById('meeting').style.display='flex'}
+function closeMeeting(){document.getElementById('meeting').style.display='none';addEvent('Reunión diplomática iniciada. Se abrió una nueva negociación con un líder extranjero.')}
+</script>
+<script>
+const map=L.map('map',{zoomControl:false,worldCopyJump:true}).setView([20,0],2);
+L.control.zoom({position:'bottomright'}).addTo(map);
+const street=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+const satellite=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Tiles © Esri'});
+L.control.layers({'Mapa':street,'Tierra / satélite':satellite},null,{position:'topright'}).addTo(map);
+
+const countries={
+"Chile":{iso:"CHL",capital:"Santiago",pop:19.8,gdp:335,approval:62,eco:72,army:54,diplomacy:78},
+"Argentina":{iso:"ARG",capital:"Buenos Aires",pop:46.8,gdp:640,approval:51,eco:49,army:62,diplomacy:69},
+"Peru":{iso:"PER",capital:"Lima",pop:34.0,gdp:289,approval:55,eco:63,army:58,diplomacy:71},
+"Bolivia":{iso:"BOL",capital:"La Paz",pop:12.6,gdp:47,approval:48,eco:45,army:42,diplomacy:60},
+"Brazil":{iso:"BRA",capital:"Brasilia",pop:212,gdp:2180,approval:57,eco:68,army:78,diplomacy:82},
+"United States of America":{iso:"USA",capital:"Washington",pop:342,gdp:30500,approval:49,eco:88,army:99,diplomacy:91},
+"China":{iso:"CHN",capital:"Beijing",pop:1410,gdp:19400,approval:71,eco:84,army:95,diplomacy:86},
+"Russia":{iso:"RUS",capital:"Moscow",pop:144,gdp:2100,approval:67,eco:61,army:93,diplomacy:64},
+"France":{iso:"FRA",capital:"Paris",pop:68,gdp:3500,approval:46,eco:77,army:82,diplomacy:89},
+"Germany":{iso:"DEU",capital:"Berlin",pop:84,gdp:4900,approval:52,eco:86,army:76,diplomacy:92},
+"India":{iso:"IND",capital:"New Delhi",pop:1470,gdp:4300,approval:63,eco:73,army:87,diplomacy:84},
+"Japan":{iso:"JPN",capital:"Tokyo",pop:123,gdp:4400,approval:58,eco:82,army:67,diplomacy:90},
+"Australia":{iso:"AUS",capital:"Canberra",pop:27,gdp:1900,approval:55,eco:84,army:61,diplomacy:88},
+"South Africa":{iso:"ZAF",capital:"Pretoria",pop:63,gdp:420,approval:44,eco:52,army:51,diplomacy:73},
+"Mexico":{iso:"MEX",capital:"Mexico City",pop:132,gdp:1900,approval:54,eco:66,army:57,diplomacy:80}
+};
+
+const regions={
+"Chile":["Arica y Parinacota","Tarapacá","Antofagasta","Atacama","Coquimbo","Valparaíso","Metropolitana de Santiago","O'Higgins","Maule","Ñuble","Biobío","La Araucanía","Los Ríos","Los Lagos","Aysén","Magallanes"],
+"Argentina":["Buenos Aires","Córdoba","Santa Fe","Mendoza","Salta","Tucumán","Neuquén","Río Negro","Chubut","Santa Cruz","Tierra del Fuego"],
+"Peru":["Lima","Arequipa","Cusco","La Libertad","Piura","Lambayeque","Loreto","Puno","Tacna"],
+"Bolivia":["La Paz","Santa Cruz","Cochabamba","Oruro","Potosí","Tarija","Chuquisaca","Beni","Pando"],
+"Brazil":["São Paulo","Rio de Janeiro","Minas Gerais","Bahia","Paraná","Rio Grande do Sul","Amazonas","Pernambuco"],
+"United States of America":["California","Texas","New York","Florida","Washington","Illinois","Arizona","Colorado"],
+"China":["Beijing","Shanghai","Guangdong","Sichuan","Zhejiang","Jiangsu","Hubei","Xinjiang"],
+"Russia":["Moscow","Saint Petersburg","Sverdlovsk","Novosibirsk","Krasnoyarsk","Primorsky Krai"],
+"France":["Île-de-France","Provence-Alpes-Côte d'Azur","Auvergne-Rhône-Alpes","Occitanie","Nouvelle-Aquitaine"],
+"Germany":["Bavaria","Berlin","Hesse","North Rhine-Westphalia","Saxony"],
+"India":["Maharashtra","Uttar Pradesh","Gujarat","Karnataka","Tamil Nadu","West Bengal","Rajasthan"],
+"Japan":["Tokyo","Osaka","Hokkaido","Aichi","Fukuoka","Okinawa"],
+"Australia":["New South Wales","Victoria","Queensland","Western Australia","South Australia","Tasmania"],
+"South Africa":["Gauteng","Western Cape","KwaZulu-Natal","Eastern Cape","Limpopo"],
+"Mexico":["Ciudad de México","Jalisco","Nuevo León","Puebla","Veracruz","Yucatán"]
+};
+
+const regionCoords={
+ "Chile":{"Arica y Parinacota":[-18.48,-70.31],"Tarapacá":[-20.21,-69.39],"Antofagasta":[-23.65,-70.40],"Atacama":[-27.37,-70.33],"Coquimbo":[-29.95,-71.34],"Valparaíso":[-33.05,-71.62],"Metropolitana de Santiago":[-33.45,-70.67],"Biobío":[-36.83,-73.05],"Los Lagos":[-41.47,-72.94],"Magallanes":[-53.16,-70.91]},
+ "Argentina":{"Buenos Aires":[-34.60,-58.38],"Córdoba":[-31.42,-64.19],"Mendoza":[-32.89,-68.85],"Salta":[-24.78,-65.41],"Neuquén":[-38.95,-68.06]},
+ "Peru":{"Lima":[-12.05,-77.04],"Arequipa":[-16.40,-71.54],"Cusco":[-13.53,-71.97],"Piura":[-5.19,-80.63],"Tacna":[-18.01,-70.25]},
+ "Bolivia":{"La Paz":[-16.50,-68.15],"Santa Cruz":[-17.78,-63.18],"Cochabamba":[-17.39,-66.16]},
+ "Brazil":{"São Paulo":[-23.55,-46.63],"Rio de Janeiro":[-22.91,-43.17],"Minas Gerais":[-19.92,-43.94],"Bahia":[-12.97,-38.50]},
+ "United States of America":{"California":[36.78,-119.42],"Texas":[31.97,-99.90],"New York":[42.90,-75.00],"Florida":[27.66,-81.52]},
+ "China":{"Beijing":[39.90,116.40],"Shanghai":[31.23,121.47],"Guangdong":[23.38,113.76],"Sichuan":[30.65,104.07]},
+ "Russia":{"Moscow":[55.75,37.62],"Saint Petersburg":[59.93,30.33],"Sverdlovsk":[56.84,60.61],"Primorsky Krai":[43.12,131.89]},
+ "France":{"Île-de-France":[48.85,2.35],"Occitanie":[43.60,1.44],"Provence-Alpes-Côte d'Azur":[43.93,6.07]},
+ "Germany":{"Bavaria":[48.79,11.50],"Berlin":[52.52,13.40],"Hesse":[50.65,9.16]},
+ "India":{"Maharashtra":[19.75,75.71],"Uttar Pradesh":[26.85,80.95],"Gujarat":[22.26,71.19],"Karnataka":[15.32,75.71]},
+ "Japan":{"Tokyo":[35.68,139.69],"Osaka":[34.69,135.50],"Hokkaido":[43.06,141.35]},
+ "Australia":{"New South Wales":[-31.25,146.92],"Victoria":[-37.47,144.79],"Queensland":[-20.92,142.70]},
+ "South Africa":{"Gauteng":[-26.27,28.11],"Western Cape":[-33.23,21.86],"KwaZulu-Natal":[-28.53,30.90]},
+ "Mexico":{"Ciudad de México":[19.43,-99.13],"Jalisco":[20.66,-103.35],"Nuevo León":[25.67,-100.31]}
+};
+let constructions=[];
+let wars=[];
+let warLayers=[];
+let missileTimer=null;
+const worldNews=[
+ {tag:'POLÍTICA',title:'Cumbre internacional abre nuevas negociaciones comerciales',text:'Gobiernos anuncian conversaciones para reducir tensiones y ampliar acuerdos.'},
+ {tag:'GEOPOLÍTICA',title:'Aumenta la atención sobre una nueva tensión diplomática',text:'Cancillerías intercambian comunicados mientras se buscan canales de diálogo.'},
+ {tag:'GUERRA',title:'Mercados reaccionan a movimientos militares en una zona de conflicto',text:'Los gobiernos evalúan sanciones, ayuda y posibles negociaciones.'},
+ {tag:'FÚTBOL',title:'La jornada internacional deja grandes resultados',text:'Clubes y selecciones preparan sus próximos encuentros y competiciones.'},
+ {tag:'CINE',title:'Nueva producción cinematográfica genera expectativa mundial',text:'Estudios anuncian estrenos y festivales preparan sus carteleras.'},
+ {tag:'MÚSICA',title:'Artistas anuncian nuevas giras y conciertos',text:'Promotoras internacionales publican fechas y nuevas presentaciones.'}
+];
+
+let current="Chile", leader={name:"Alejandro",last:"Fuentes",age:47,party:"Partido Nacional",ideology:"Personalizada"};
+let gameDate=new Date(2026,0,1), layer;
+const SAVE_KEY="geohistoria_v05_save";
+let eventHistory=["Partida preparada. Selecciona un país para comenzar."];
+
+function color(p){return p.approval>65?"#3c8d62":p.approval>50?"#536f91":"#8c4c55"}
+function style(f){let n=f.properties.name;return {fillColor:countries[n]?color(countries[n]):"#34414f",weight:1,color:"#708092",fillOpacity:.85}}
+function onEach(f,l){l.on({click:()=>selectCountry(f.properties.name),mouseover:e=>e.target.setStyle({weight:2,color:"#fff"}),mouseout:e=>layer.resetStyle(e.target)});l.bindTooltip(f.properties.name)}
+fetch("https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson")
+.then(r=>r.json()).then(data=>{layer=L.geoJSON(data,{style,onEachFeature:onEach}).addTo(map);buildSelect();selectCountry("Chile")})
+.catch(()=>{document.getElementById("countryInfo").innerHTML="<p class='danger'>No se pudo cargar el mapa. Revisa tu conexión a internet.</p>"});
+
+function buildSelect(){let s=document.getElementById("countrySelect");Object.keys(countries).forEach(n=>s.add(new Option(n,n)))}
+function selectCountry(name){
+ if(!countries[name])return;current=name;document.getElementById("countrySelect").value=name;renderRegions();persistSilent();
+ const c=countries[name];
+ document.getElementById("countryInfo").innerHTML=`<div class="stat"><b>${c.capital}</b>Capital</div><div class="stat"><b>${c.pop} M</b>Población</div><div class="stat"><b>US$ ${c.gdp} B</b>PIB aprox.</div>`;
+ renderStats();
+ if(layer)layer.eachLayer(l=>{if(l.feature.properties.name===name){map.fitBounds(l.getBounds(),{maxZoom:5});l.setStyle({weight:3,color:"#fff"})}});
+}
+function renderStats(){let c=countries[current];document.getElementById("stats").innerHTML=
+["approval|Popularidad", "eco|Economía","army|Militar","diplomacy|Diplomacia"].map(x=>{let [k,n]=x.split("|");return `<div class="stat">${n}<b>${c[k]}/100</b><div class="bar"><i style="width:${c[k]}%"></i></div></div>`}).join("")+
+`<div class="stat">Presidente <b>${leader.name} ${leader.last}</b><div class="small">${leader.party} · ${leader.ideology}</div></div>`}
+function saveLeader(){leader={name:leaderName.value,last:leaderLast.value,age:+leaderAge.value,party:party.value,ideology:ideology.value};renderStats();addEvent(`Nuevo presidente configurado: ${leader.name} ${leader.last}.`)}
+function addEvent(t){eventHistory.unshift(t);eventHistory=eventHistory.slice(0,80);renderEvents();persistSilent();}
+function renderEvents(){const el=document.getElementById("eventLog");if(el)el.innerHTML=eventHistory.map(x=>`<div class="event">${escapeHtml(x)}</div>`).join("")}
+function escapeHtml(x){return String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function nextMonth(){gameDate.setMonth(gameDate.getMonth()+1);let c=countries[current];c.approval=Math.max(0,Math.min(100,c.approval+(Math.random()>.5?1:-1)));c.eco=Math.max(0,Math.min(100,c.eco+(Math.random()>.55?1:-1)));document.getElementById("date").textContent=gameDate.toLocaleDateString("es-CL",{day:"numeric",month:"long",year:"numeric"});renderStats();addEvent(`Ha pasado un mes. ${current} entra en una nueva etapa política.`);worldNews.unshift({tag:'MUNDO',title:`Nuevo mes en GeoHistoria: ${gameDate.toLocaleDateString('es-CL',{month:'long',year:'numeric'})}`,text:`La actividad política, económica y diplomática continúa en todo el mundo.`});worldNews.splice(10);renderWorldNews();if(wars.length){wars.forEach(w=>addEvent(`⚠️ Continúan las operaciones militares entre ${w.attacker} y ${w.defender} en ${w.attackerRegion}/${w.defenderRegion}.`));showWarVisuals(wars[wars.length-1]);}persistSilent();}
+
+function toggleAdvisor(){const a=document.getElementById('advisor');a.style.display=a.style.display==='block'?'none':'block'}
+function askAdvisor(){const i=document.getElementById('advisorInput'),q=i.value.trim();if(!q)return;const c=countries[current];let answer=`Analizando ${current}: popularidad ${c.approval}/100, economía ${c.eco}/100, defensa ${c.army}/100 y diplomacia ${c.diplomacy}/100. Recomiendo priorizar decisiones que no deterioren la popularidad mientras fortalecen la economía.`;if(/guerra|militar|defensa/i.test(q))answer=`Consejo militar: ${c.army}/100. Una escalada puede mejorar la presión diplomática, pero aumentará el costo fiscal y el riesgo internacional.`;if(/econom|dinero|impuesto|pib/i.test(q))answer=`Consejo económico: ${c.eco}/100. Conviene equilibrar crecimiento, gasto público y estabilidad antes de asumir nuevos compromisos.`;if(/diplom|alianza|tratado/i.test(q))answer=`Consejo diplomático: ${c.diplomacy}/100. Una negociación o alianza puede mejorar tu posición sin consumir recursos militares.`;const box=document.getElementById('advisorChat');box.innerHTML+=`<div class="msg me"><b>Presidente:</b> ${q}</div><div class="msg ai"><b>Asesor:</b> ${answer}</div>`;box.scrollTop=box.scrollHeight;i.value=''}
+function openContact(){const names=Object.keys(countries).filter(n=>n!==current);const target=names[Math.floor(Math.random()*names.length)];document.getElementById('otherLeader').textContent='Presidente de '+target;document.getElementById('meetingText').textContent=`Ha llegado una solicitud de reunión diplomática desde ${target}.`;document.getElementById('meeting').style.display='flex'}
+function closeMeeting(){document.getElementById('meeting').style.display='none';addEvent('Reunión diplomática iniciada. Se abrió una nueva negociación con un líder extranjero.')}
+
+
+function regionPoint(country, region){
+ const table=regionCoords[country]||{};
+ if(table[region]) return table[region];
+ const first=Object.values(table)[0];
+ return first || [0,0];
+}
+function clearWarVisuals(){
+ warLayers.forEach(x=>{try{map.removeLayer(x)}catch(e){}});
+ warLayers=[];
+ if(missileTimer){clearInterval(missileTimer);missileTimer=null;}
+}
+function unitMarker(latlng, emoji, cls, title){
+ const m=L.marker(latlng,{icon:L.divIcon({className:'unitMarker',html:`<div class="unit ${cls}" title="${title}">${emoji}</div>`,iconSize:[30,30],iconAnchor:[15,15]})});
+ m.addTo(map); warLayers.push(m); return m;
+}
+function showWarVisuals(war){
+ clearWarVisuals();
+ const a=regionPoint(war.attacker,war.attackerRegion), d=regionPoint(war.defender,war.defenderRegion);
+ const line=L.polyline([a,d],{className:'missileLine',color:'#ff735f',weight:2,dashArray:'6 7',opacity:.8}).addTo(map); warLayers.push(line);
+ const aBase=L.circleMarker(a,{radius:14,color:'#ff6258',weight:2,fillOpacity:.08}).addTo(map);
+ const dBase=L.circleMarker(d,{radius:14,color:'#ff6258',weight:2,fillOpacity:.08}).addTo(map); warLayers.push(aBase,dBase);
+ unitMarker([a[0]+.35,a[1]+.35],'🪖','tank',war.attacker+' — fuerzas terrestres');
+ unitMarker([a[0]-.35,a[1]-.25],'✈️','jet',war.attacker+' — aviación');
+ unitMarker([d[0]-.30,d[1]+.30],'🪖','tank',war.defender+' — fuerzas terrestres');
+ unitMarker([d[0]+.30,d[1]-.25],'✈️','jet',war.defender+' — aviación');
+ const label=L.marker([(a[0]+d[0])/2,(a[1]+d[1])/2],{icon:L.divIcon({className:'',html:`<div class="warLabel">⚔️ ${war.attacker} vs ${war.defender}</div>`,iconSize:[170,24],iconAnchor:[85,12]})}).addTo(map); warLayers.push(label);
+ const pulseA=L.marker(a,{icon:L.divIcon({className:'',html:'<div class="warPulse"></div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);
+ const pulseD=L.marker(d,{icon:L.divIcon({className:'',html:'<div class="warPulse"></div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map); warLayers.push(pulseA,pulseD);
+ missileTimer=setInterval(()=>animateMissile(a,d),1800);
+}
+function animateMissile(a,b){
+ const missile=unitMarker(a,'🚀','missile','Proyectil en tránsito');
+ let t=0; const timer=setInterval(()=>{t+=.035; const lat=a[0]+(b[0]-a[0])*t, lng=a[1]+(b[1]-a[1])*t; missile.setLatLng([lat,lng]); if(t>=1){clearInterval(timer); if(missile.getElement()) missile.getElement().innerHTML='<div class="explosion">💥</div>'; setTimeout(()=>{try{map.removeLayer(missile)}catch(e){}},700)}},45);
+}
+function declareWar(){
+ const names=Object.keys(countries).filter(n=>n!==current);
+ if(!names.length)return;
+ const target=prompt('¿Contra qué país deseas declarar la guerra?\n\n'+names.join(', '),names[0]);
+ if(!target || !countries[target] || target===current){if(target)addEvent('Declaración de guerra cancelada: país no válido.');return;}
+ const attackerRegion=document.getElementById('regionSelect').value || (regions[current]||[])[0];
+ const targetRegion=(regions[target]||[countries[target].capital])[Math.floor(Math.random()*((regions[target]||[countries[target].capital]).length))];
+ const war={attacker:current,defender:target,attackerRegion,defenderRegion,started:new Date(gameDate)};
+ wars.push(war);
+ document.getElementById('warHud').style.display='block';
+ document.getElementById('warName').textContent=`${current} ⚔️ ${target}`;
+ document.getElementById('warZone').textContent=`${attackerRegion} / ${targetRegion}`;
+ document.getElementById('warUnits').textContent='🪖 2 · ✈️ 2 · 🚀 activos';
+ addEvent(`⚔️ ${current} ha entrado en guerra con ${target}. Combates simulados en ${attackerRegion}.`);
+ publications.unshift({title:`Guerra: ${current} contra ${target}`,body:`Se ha iniciado un conflicto armado. Las primeras operaciones se concentran en ${attackerRegion} y ${targetRegion}.`});
+ worldNews.unshift({tag:'GUERRA',title:`⚔️ Estalla una guerra entre ${current} y ${target}`,text:`Se reportan movimientos de fuerzas terrestres, aviación y lanzamiento de misiles en ${attackerRegion} / ${targetRegion}.`});
+ renderWorldNews(); showWarVisuals(war);
+ const a=regionPoint(current,attackerRegion); map.flyTo(a,Math.max(map.getZoom(),4),{duration:1.2});
+}
+</script>
+
+<style>
+.contact{background:#0d141c;border:1px solid #26313d;border-radius:8px;padding:9px;margin:7px 0}.contact b{display:block}.urgent{color:#ffb36b;font-size:11px}.contact button{margin-top:7px}.paper{position:fixed;inset:0;background:#090d12ee;z-index:3000;display:none;align-items:center;justify-content:center;padding:30px}.paperBox{width:min(1000px,95vw);height:min(85vh,850px);overflow:auto;background:#f1eee5;color:#181818;padding:28px;box-shadow:0 20px 60px #0008}.paperHead{text-align:center;border-bottom:3px double #222;padding-bottom:12px}.paperHead h1{color:#111;font-family:Georgia,serif;font-size:34px}.article{border-bottom:1px solid #aaa;padding:16px 0;font-family:Georgia,serif}.article h3{margin:0 0 5px;font-size:20px}.article p{line-height:1.5}.closePaper{float:right;background:#222;color:#fff;width:auto}.ministerModal{position:fixed;inset:0;background:#0009;z-index:3100;display:none;align-items:center;justify-content:center}.ministerBox{background:#111821;border:1px solid #384653;border-radius:12px;width:min(520px,92vw);padding:22px}.ministerBox h2{margin-top:0;color:#fff;text-transform:none;letter-spacing:0}.ministerBox textarea{min-height:100px;resize:vertical}.priority{display:inline-block;padding:3px 7px;border-radius:10px;background:#4d2f20;color:#ffc28d;font-size:10px;margin-top:5px}
+</style>
+<div id="construction" class="construction"><div class="constructionBox"><button class="closePaper" onclick="closeConstruction()">Cerrar</button><h2 style="margin-top:0;color:#fff;text-transform:none;letter-spacing:0">Simulación de construcción</h2><div id="constructionTitle" class="small"></div><div class="site"><div class="ground"></div><div class="crane"></div><div class="building"></div></div><div class="barBuild"><i></i></div><p id="constructionStatus" class="small" style="margin-top:10px">Preparando obras...</p></div></div><div id="paper" class="paper"><div class="paperBox"><button class="closePaper" onclick="closeNewspaper()">Cerrar</button><div class="paperHead"><h1>EL DIARIO NACIONAL</h1><div id="paperDate">Edición de hoy · GeoHistoria</div></div><div id="articles"></div></div></div>
+<div id="ministerModal" class="ministerModal"><div class="ministerBox"><button class="closePaper" onclick="closeMinister()">Cerrar</button><h2 id="ministerTitle"></h2><div id="ministerInfo"></div><label>Mensaje al ministro</label><textarea id="ministerMessage" placeholder="Escribe instrucciones, preguntas o solicitudes..."></textarea><button onclick="sendMinisterMessage()">Enviar instrucción</button></div></div>
+<script>
+const ministers=[
+ {name:'María Torres',role:'Ministra de Hacienda',project:'Reforma tributaria y presupuesto nacional',urgency:92,idea:'Reducir déficit y financiar infraestructura.'},
+ {name:'Carlos Rojas',role:'Ministro de Defensa',project:'Modernización de las Fuerzas Armadas',urgency:76,idea:'Renovar equipamiento y mejorar preparación.'},
+ {name:'Sofía Morales',role:'Ministra de Relaciones Exteriores',project:'Nueva agenda diplomática',urgency:64,idea:'Fortalecer alianzas y acuerdos comerciales.'},
+ {name:'Diego Fuentes',role:'Ministro de Obras Públicas',project:'Plan nacional de infraestructura',urgency:84,idea:'Carreteras, puertos, agua y conectividad.'},
+ {name:'Valentina Pérez',role:'Ministra del Interior',project:'Seguridad y administración regional',urgency:88,idea:'Coordinar regiones y reforzar seguridad.'}
+];
+let publications=[
+ {title:'Mensaje presidencial de apertura',body:'El presidente ha iniciado una nueva etapa de gobierno y ha ordenado a sus ministros presentar proyectos prioritarios.'}
+];
+let activeMinister=null;
+function renderRegions(){const rs=regions[current]||[countries[current]?.capital||'Región principal'];const sel=document.getElementById('regionSelect');sel.innerHTML=rs.map(r=>`<option>${r}</option>`).join('')}
+function openConstruction(){const region=document.getElementById('regionSelect').value;const type=prompt('Tipo de construcción: tecnológica, residencial o industrial','Tecnológica');if(!type)return;const project={region,type,current};constructions.push(project);document.getElementById('constructionTitle').textContent=`${type} · ${region}, ${current}`;document.getElementById('constructionStatus').textContent='Obras iniciadas: excavación, estructura y montaje...';document.getElementById('construction').style.display='flex';addEvent(`Se inició una construcción ${type.toLowerCase()} en ${region}, ${current}.`);setTimeout(()=>document.getElementById('constructionStatus').textContent='Estructura levantada. Instalaciones y acabados en progreso...',3000);setTimeout(()=>document.getElementById('constructionStatus').textContent='Construcción finalizada y añadida al registro nacional.',6000)}
+function closeConstruction(){document.getElementById('construction').style.display='none'}
+function renderWorldNews(){document.getElementById('newsList').innerHTML=worldNews.map(n=>`<div class="newsItem"><span class="newsTag">${n.tag}</span><b>${n.title}</b><span>${n.text}</span></div>`).join('')}
+function renderMinisters(){const el=document.getElementById('ministerContacts');el.innerHTML=ministers.map((m,i)=>`<div class="contact"><b>${m.name}</b><span class="small">${m.role}</span><div class="small">${m.project}</div><span class="priority">Urgencia ${m.urgency}/100</span><button onclick="openMinister(${i})">Contactar</button></div>`).join('')}
+function openMinister(i){activeMinister=ministers[i];document.getElementById('ministerTitle').textContent=activeMinister.role;document.getElementById('ministerInfo').innerHTML=`<b>${activeMinister.name}</b><p class="small">Proyecto: ${activeMinister.project}<br>Idea: ${activeMinister.idea}<br>Urgencia actual: ${activeMinister.urgency}/100</p>`;document.getElementById('ministerMessage').value='';document.getElementById('ministerModal').style.display='flex'}
+function closeMinister(){document.getElementById('ministerModal').style.display='none'}
+function sendMinisterMessage(){const msg=document.getElementById('ministerMessage').value.trim();if(!msg)return;publications.unshift({title:`Instrucción presidencial — ${activeMinister.role}`,body:`El presidente comunicó a ${activeMinister.name}: “${msg}”.`});addEvent(`Instrucción enviada a ${activeMinister.name}.`);closeMinister();}
+function publishLaw(){const title=prompt('Título de la ley o comunicado:');if(!title)return;const body=prompt('Texto que será publicado en el periódico:');if(!body)return;publications.unshift({title,body:`${body}<br><small>Firmado por ${leader.name} ${leader.last}, Presidente de ${current}.</small>`});addEvent(`Se publicó oficialmente: ${title}.`);}
+function openNewspaper(){document.getElementById('paperDate').textContent=`Edición de ${gameDate.toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'})} · ${current}`;document.getElementById('articles').innerHTML=publications.map(a=>`<article class="article"><h3>${a.title}</h3><p>${a.body}</p></article>`).join('');document.getElementById('paper').style.display='flex'}
+function closeNewspaper(){document.getElementById('paper').style.display='none'}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window._toast);window._toast=setTimeout(()=>t.style.display='none',2200)}
+function snapshot(){return {version:'0.5',current,leader,gameDate:gameDate.toISOString(),countries,wars,constructions,publications,eventHistory,worldNews}}
+function persistSilent(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(snapshot()));}catch(e){}}
+function saveGame(){persistSilent();showToast('Partida guardada en este navegador.');updateSaveBadge()}
+function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;const d=JSON.parse(raw);if(d.version!=='0.5')return false;current=d.current||'Chile';leader=d.leader||leader;gameDate=new Date(d.gameDate||'2026-01-01');Object.assign(countries,d.countries||{});wars=d.wars||[];constructions=d.constructions||[];publications=d.publications||publications;eventHistory=d.eventHistory||eventHistory;worldNews.splice(0,worldNews.length,...(d.worldNews||worldNews));document.getElementById('date').textContent=gameDate.toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});document.getElementById('leaderName').value=leader.name;document.getElementById('leaderLast').value=leader.last;document.getElementById('leaderAge').value=leader.age;document.getElementById('party').value=leader.party;document.getElementById('ideology').value=leader.ideology;selectCountry(current);renderEvents();renderWorldNews();if(wars.length){document.getElementById('warHud').style.display='block';showWarVisuals(wars[wars.length-1]);}return true}catch(e){return false}}
+function newGame(){localStorage.removeItem(SAVE_KEY);location.reload()}
+function continueGame(){if(loadGame()){document.getElementById('startScreen').style.display='none';showToast('Partida cargada.');}else{showToast('No existe una partida guardada.');}}
+function resetGame(){if(confirm('¿Borrar la partida guardada y comenzar desde cero?')){localStorage.removeItem(SAVE_KEY);location.reload()}}
+function exportGame(){const blob=new Blob([JSON.stringify(snapshot(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='GeoHistoria_partida.json';a.click();URL.revokeObjectURL(a.href)}
+function importGame(){const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.onchange=()=>{const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);localStorage.setItem(SAVE_KEY,JSON.stringify(d));location.reload()}catch(e){showToast('Archivo de partida no válido.')}};r.readAsText(file)};input.click()}
+function updateSaveBadge(){const raw=localStorage.getItem(SAVE_KEY);document.getElementById('saveBadge').textContent=raw?'✓ Hay una partida guardada en este navegador.':'No hay partida guardada todavía.'}
+renderMinisters();renderWorldNews();renderRegions();
+updateSaveBadge();renderEvents();document.getElementById("startScreen").style.display="flex";
+</script>
+</body></html>
